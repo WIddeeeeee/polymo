@@ -940,7 +940,7 @@ wrong, whose fault it is, and the one action that helps.
 | Models missing | Which one, by name | Where to put the file |
 | Models loading | Which one, and that it is normal | Wait; nothing else works yet |
 | Model failed | The error, verbatim | Retry, or swap model |
-| Pet dead | "Your pet has died" | Reset — and only here |
+| Pet dead | "Your pet has died" | Recover with password (supported firmware), or reset |
 | Pet switched off by the user | "Your pet is off" | Turn it back on |
 
 **Readiness has a home. Built, and this paragraph was stale** — corrected

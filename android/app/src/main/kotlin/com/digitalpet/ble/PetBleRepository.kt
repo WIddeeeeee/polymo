@@ -509,6 +509,15 @@ class PetBleRepository @Inject constructor(
         enqueue { write(c, byteArrayOf(PetProtocol.Command.RESET.value)) }
     }
 
+    fun recoverPet() {
+        val c = commandChar ?: run {
+            logger.log(TAG, "recoverPet ignored - no command characteristic")
+            return
+        }
+        logger.log(TAG, "recoverPet - sending RECOVER")
+        enqueue { write(c, byteArrayOf(PetProtocol.Command.RECOVER.value)) }
+    }
+
     fun sendScreenTime(overusing: Boolean) {
         // Piggy-backed on the poll the service already runs, rather than a timer
         // of its own: one fewer thing with a lifetime to get wrong.

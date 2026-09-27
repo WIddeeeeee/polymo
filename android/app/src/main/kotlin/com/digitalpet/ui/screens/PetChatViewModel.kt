@@ -140,6 +140,9 @@ class PetChatViewModel @Inject constructor(
         conversation.clearConversation(force = true)
     }
 
+    /** Revive the same pet without clearing its conversation or care history. */
+    fun petRecover() = petBle.recoverPet()
+
 
     // Which models are installed and active is owned by ModelRepository — it
     // outlives this screen. Re-exposed here so the debug panels keep a single

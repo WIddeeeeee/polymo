@@ -19,6 +19,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.digitalpet.ble.PetBleRepository
 import com.digitalpet.ui.components.core.Card
@@ -66,6 +68,7 @@ import com.digitalpet.conversation.PetPersonas
 import com.digitalpet.pet.NotificationAccess
 import com.digitalpet.pet.PetDeviceText
 import com.digitalpet.pet.PetStatusText
+import com.digitalpet.pet.PetRecovery
 import com.digitalpet.service.PetForegroundService
 import com.digitalpet.service.PetNotificationListener
 import com.digitalpet.ui.components.core.PetButtonSecondary
@@ -104,6 +107,9 @@ fun PetDeviceScreen(
     val status by viewModel.petStatus.collectAsState()
     val condition by viewModel.petCondition.collectAsState()
     var confirmingReset by remember { mutableStateOf(false) }
+    var recoveringPet by remember { mutableStateOf(false) }
+    var recoveryPassword by remember { mutableStateOf("") }
+    var recoveryPasswordInvalid by remember { mutableStateOf(false) }
     var confirmingClear by remember { mutableStateOf(false) }
     val messages by viewModel.messages.collectAsState()
     val generating by viewModel.isGenerating.collectAsState()
@@ -535,6 +541,17 @@ fun PetDeviceScreen(
          * refuses the write too; neither check replaces the other.
          */
         if (condition?.dead == true) {
+            if (info?.capabilities?.recovery == true) {
+                PetButtonSecondary(
+                    onClick = {
+                        recoveryPassword = ""
+                        recoveryPasswordInvalid = false
+                        recoveringPet = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Recover this pet") }
+            }
+
             PetButton(
                 onClick = { confirmingReset = true },
                 modifier = Modifier.fillMaxWidth()
@@ -596,6 +613,60 @@ fun PetDeviceScreen(
                     onClick = { confirmingReset = false },
                 ) { Text("Cancel") }
             }
+        )
+    }
+
+    if (recoveringPet) {
+        val context = LocalContext.current
+        AlertDialog(
+            onDismissRequest = { recoveringPet = false },
+            title = { Text("Recover this pet?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(PetSpacing.s8)) {
+                    Text("Enter the recovery password to revive your pet and keep its age and care history.")
+                    OutlinedTextField(
+                        value = recoveryPassword,
+                        onValueChange = {
+                            recoveryPassword = it
+                            recoveryPasswordInvalid = false
+                        },
+                        label = { Text("Password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        isError = recoveryPasswordInvalid,
+                        supportingText = if (recoveryPasswordInvalid) {
+                            { Text("That password is not correct.") }
+                        } else null,
+                    )
+                    PetTextButton(
+                        onClick = {
+                            context.startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    android.net.Uri.parse("https://www.youtube.com/@masonmediauk"),
+                                )
+                            )
+                        },
+                    ) { Text("Subscribe to MasonMediaUK on YouTube") }
+                }
+            },
+            confirmButton = {
+                PetTextButton(
+                    onClick = {
+                        if (PetRecovery.acceptsPassword(recoveryPassword)) {
+                            recoveringPet = false
+                            viewModel.petRecover()
+                        } else {
+                            recoveryPasswordInvalid = true
+                        }
+                    },
+                ) { Text("Recover") }
+            },
+            dismissButton = {
+                PetTextButton(
+                    onClick = { recoveringPet = false },
+                ) { Text("Cancel") }
+            },
         )
     }
 }

@@ -150,6 +150,7 @@ enum {
     PET_CAP_SIM      = 1u << 9,  /* v4: reports Condition — it is alive */
     PET_CAP_SCREEN   = 1u << 10, /* v5: accepts a Screen write          */
     PET_CAP_LIFE     = 1u << 11, /* v6: has life stages, can die, can be reset */
+    PET_CAP_RECOVERY = 1u << 12, /* accepts dead-pet recovery command          */
     PET_CAP_CLOCK    = 1u << 13, /* v8: accepts a Clock write, has quiet hours */
     PET_CAP_FACESET  = 1u << 14, /* v9: has face sets and can be told to switch */
     PET_CAP_QUIET    = 1u << 15, /* v10: quiet hours can be set and read back */
@@ -159,7 +160,8 @@ enum {
 #define PET_CAPABILITIES \
     (PET_CAP_TEXT | PET_CAP_MOOD | PET_CAP_EVENTS | PET_CAP_MIC | PET_CAP_SPEAKER | \
      PET_CAP_STATUS | PET_CAP_SIM | PET_CAP_SCREEN | PET_CAP_LIFE | \
-     PET_CAP_BATTERY | PET_CAP_CLOCK | PET_CAP_FACESET | PET_CAP_QUIET)
+        PET_CAP_BATTERY | PET_CAP_RECOVERY | PET_CAP_CLOCK | \
+        PET_CAP_FACESET | PET_CAP_QUIET)
 
 /* ---- v4: expression, status and condition are three different things ------
  *
@@ -291,18 +293,19 @@ enum {
  * Deliberately a COMMAND channel and not a state one. Everything else the phone
  * writes describes the world (what the phone is doing, what the user's screen
  * time is doing) and leaves the pet to decide what it means. This carries the
- * one thing that is genuinely the user's decision rather than an observation:
- * ending a dead pet's story and starting a new one.
+ * user's explicit decision rather than an observation: end a dead pet's story
+ * by starting a new one, or revive it while preserving its history.
  *
  * RESET is destructive and irreversible, which is why it is a distinct
  * characteristic rather than a flag on an existing one — nothing should be able
- * to reach it by writing a wrong value to something else. The pet refuses it
- * while alive for the same reason; the phone is expected to confirm with the
- * user first, but the pet does not rely on that.
+ * to reach it by writing a wrong value to something else. The pet refuses reset
+ * and recovery while alive; recovery's app-side password gate does not replace
+ * the firmware's dead-state check.
  */
 enum {
     PET_CMD_NONE  = 0,
-    PET_CMD_RESET = 1,   /* start a new pet — refused unless the pet is dead */
+    PET_CMD_RESET   = 1, /* start a new pet — refused unless the pet is dead */
+    PET_CMD_RECOVER = 2, /* revive a dead pet; preserve age and care history */
 };
 
 /* ---- Audio (mic -> phone) ------------------------------------------------ */

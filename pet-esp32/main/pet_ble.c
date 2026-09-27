@@ -300,6 +300,13 @@ static int chr_access(uint16_t conn_handle, uint16_t attr_handle,
                 }
                 ESP_LOGW(TAG, "reset requested by the phone");
                 pet_sim_reset();
+            } else if (cmd == PET_CMD_RECOVER) {
+                if (!pet_sim_is_dead()) {
+                    ESP_LOGW(TAG, "recovery refused - the pet is alive");
+                    return BLE_ATT_ERR_UNLIKELY;
+                }
+                ESP_LOGW(TAG, "recovery requested by the phone");
+                pet_sim_recover();
             }
             return 0;
         }

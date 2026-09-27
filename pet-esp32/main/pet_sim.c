@@ -518,6 +518,30 @@ void pet_sim_reset(void)
     pet_ble_notify_condition();
 }
 
+void pet_sim_recover(void)
+{
+    if (!s_state.dead) {
+        ESP_LOGW(TAG, "recovery refused - the pet is alive");
+        return;
+    }
+
+    int64_t now = 0;
+    pet_rtc_now(&now);
+    s_state.satiety = SIM_MAX_SCORE;
+    s_state.happiness = SIM_MAX_SCORE;
+    s_state.epoch = now;
+    s_state.zero_epoch = 0;
+    s_state.dead = 0;
+    memset(s_state.call_epoch, 0, sizeof(s_state.call_epoch));
+    sim_clear_sickness();
+
+    sim_save();
+    ESP_LOGW(TAG, "recovery - revived, preserving age and %u care mistakes",
+             s_state.care_mistakes);
+    pet_set_mood(pet_sim_baseline_mood());
+    pet_ble_notify_condition();
+}
+
 /*
  * Age the pet by however much wall time has passed.
  *

@@ -126,12 +126,12 @@ object PetProtocol {
     val CHAR_SCREEN: UUID = uuid(0x0016)
 
     /**
-     * v6. An explicit user action, phone to pet. Currently only [Command.RESET].
+    * v6. An explicit user action, phone to pet: reset or recover a dead pet.
      *
      * Deliberately a command channel rather than another state one. Everything
      * else the phone writes *describes the world* and leaves the pet to decide
-     * what it means; this carries the one thing that is genuinely the user's
-     * decision and not an observation — ending a dead pet's story.
+    * what it means; this carries explicit user decisions and not observations:
+    * ending a dead pet's story or reviving it while preserving its history.
      */
     val CHAR_COMMAND: UUID = uuid(0x0017)
 
@@ -182,13 +182,13 @@ object PetProtocol {
     /**
      * Written to [CHAR_COMMAND].
      *
-     * [RESET] is destructive and irreversible: it discards the pet's scores,
-     * age, care mistakes and death, and starts a new one. **The pet refuses it
-     * while alive**, and the app must confirm with the user before sending it —
-     * neither check is a substitute for the other.
+    * [RESET] is destructive and irreversible: it discards the pet's scores,
+    * age, care mistakes and death, and starts a new one. [RECOVER] revives the
+    * same pet with full scores while preserving age and care history. The pet
+    * refuses either command while alive.
      */
     enum class Command(val value: Byte) {
-        NONE(0), RESET(1);
+        NONE(0), RESET(1), RECOVER(2);
     }
 
     /**
@@ -365,6 +365,7 @@ object PetProtocol {
         val imu: Boolean get() = bits and (1 shl 5) != 0
         val touch: Boolean get() = bits and (1 shl 6) != 0
         val battery: Boolean get() = bits and (1 shl 7) != 0
+        val recovery: Boolean get() = bits and (1 shl 12) != 0
     }
 
     data class Info(val version: Int, val capabilities: Capabilities)

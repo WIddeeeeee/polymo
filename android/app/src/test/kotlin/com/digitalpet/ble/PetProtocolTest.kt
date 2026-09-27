@@ -36,6 +36,13 @@ class PetProtocolTest {
         assertTrue(!info.capabilities.imu)
         assertTrue(!info.capabilities.touch)
         assertTrue(!info.capabilities.battery)
+        assertTrue(!info.capabilities.recovery)
+    }
+
+    @Test
+    fun `recovery capability is bit 12`() {
+        val info = PetProtocol.parseInfo(byteArrayOf(10, 0, 0x10))!!
+        assertTrue(info.capabilities.recovery)
     }
 
     @Test
@@ -306,11 +313,13 @@ class PetProtocolTest {
     }
 
     @Test
-    fun `reset is the only command and it is not zero`() {
+    fun `reset and recovery commands are distinct and nonzero`() {
         // Zero is PET_CMD_NONE on the pet. A RESET that encoded as 0 would mean
         // an empty or zeroed write silently wiping a pet.
         assertEquals(1.toByte(), PetProtocol.Command.RESET.value)
         assertTrue(PetProtocol.Command.RESET.value != PetProtocol.Command.NONE.value)
+        assertEquals(2.toByte(), PetProtocol.Command.RECOVER.value)
+        assertTrue(PetProtocol.Command.RECOVER.value != PetProtocol.Command.RESET.value)
     }
 
     // --- v7 battery ---------------------------------------------------------

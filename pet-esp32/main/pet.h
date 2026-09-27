@@ -324,6 +324,10 @@ int64_t pet_sim_death_due_seconds(void);
  * thing was real. */
 void pet_sim_reset(void);
 
+/* Revive a dead pet with full care scores, preserving its age and care history.
+ * The BLE command handler refuses this while the pet is alive. */
+void pet_sim_recover(void);
+
 /* --- PCF85063 real-time clock (pet_rtc.c) -----------------------------------
  *
  * Elapsed wall time, which uptime cannot give: the RTC keeps running while the
